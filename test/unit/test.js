@@ -1,12 +1,25 @@
 import Vue from 'vue';
-import SocialSharing, { mockWindow } from '../../src/social-sharing';
+import SocialSharing, { mockWindow, networks } from '../../src/social-sharing';
 import SocialSharingMixin from '../../src/social-sharing-mixin';
+
+const getNestedComponent = (vm, refIn) => {
+  // refIn = component.directShare --> return vm.$refs.component.$refs.directShare;
+  const keys = refIn.split('.');
+  let refOut = vm;
+
+  keys.forEach((key) => {
+    refOut = refOut.$refs[key];
+  });
+
+  return refOut;
+  //vm.$refs.component.$refs.directShare;
+}
 
 describe('SocialSharing', () => {
   const createComponent = (propsData = {}, attr = {}, mixins = SocialSharingMixin.popup) => {
     const Ctor = Vue.extend({
       template: `
-        <social-sharing
+        <social-sharing ref="component"
           inline-template>
           <div class="icons">
             <facebook class="icon">
@@ -18,6 +31,7 @@ describe('SocialSharing', () => {
             <linkedin class="icon">
               <i class="fa fa-linkedin"></i>
             </linkedin>
+            <whatsapp ref="directShare"></whatsapp>
           </div>
         </social-sharing>
       `,
@@ -34,7 +48,7 @@ describe('SocialSharing', () => {
           attr
         };
       }
-    }).$mount();
+    }); // .$mount();
   };
 
   // Inspect the raw component options
@@ -84,13 +98,35 @@ describe('SocialSharing', () => {
   xit('should open popup', () => {
   });
 
-  xit('should set component aliases correctly', () => {
-    // const vm = createComponent();
-    // console.log(vm.components, vm.facebook);
+  xit('should set component aliases correctly', (done) => {
+    // not working yet --> how to handle multiple nextTick handlers?
+    const componentNames = Object.keys(networks);
+    let index = 0;
+
+    const newComponent = (name) => {
+      const Ctor = Vue.extend(SocialSharing);
+      return new Ctor({
+        template: `<${name}></${name}>`
+      });
+    };
+    
+
+    const vm = newComponent(componentNames[index]).$mount();
+    // expect(component.popup.template).toBe(expectedInstance.template); // correct mixin applied?
+    vm.$nextTick(() => {
+    //   let expectedInstance = name !== 'whatsapp' ? SocialSharingMixin.popup : SocialSharingMixin.direct;
+    //   console.log(component.$children[0].$data.network, name);
+    //   // expect(components.$children[0].$data.network).toBe(name); // correct network name?
+      console.log(vm);
+      expect(true).toBeTruthy();
+      done();
+    })
+
+
   });
 
   // mixin tests
-  xit('should render sharing links correctly', () => {
+  it('should render sharing links correctly', () => {
     // not working in travis-ci yet
     const expectedShareNames = [
       'facebook',
@@ -98,7 +134,7 @@ describe('SocialSharing', () => {
       'linkedin'
     ];
 
-    const vm = createComponent();
+    const vm = createComponent().$mount();
     const iconLinks = vm.$el.querySelectorAll('.icon');
 
     iconLinks.forEach((link, index) => {
@@ -106,19 +142,18 @@ describe('SocialSharing', () => {
     });
   });
 
-  xit('should get attribute by key', (done) => {
-    // not working yet --> attributes not defined
+  it('direct share should get attribute by key', (done) => {
     const attr = {
-      'data-action': 'doSomething'
+      'data-action': 'share/whatsapp/share'
     };
     const propsData = {};
     const propKeys = Object.keys(attr);
-    const vm = createComponent(propsData, attr);
+    const vm = createComponent(propsData, attr).$mount();
+    const component = getNestedComponent(vm, 'component.directShare'); //vm.$refs.component.$refs.directShare;
 
     Vue.nextTick(() => {
-      console.log('test', vm);
       propKeys.forEach((key) => {
-        expect(vm.attributes(key)).toBe(attr[key]);
+        expect(component.attributes(key)).toBe(attr[key]);
       });
       done();
     });
