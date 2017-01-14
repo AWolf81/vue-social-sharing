@@ -12,8 +12,8 @@ const getNestedComponent = (vm, refIn) => {
   });
 
   return refOut;
-  //vm.$refs.component.$refs.directShare;
-}
+  // vm.$refs.component.$refs.directShare;
+};
 
 describe('SocialSharing', () => {
   const createComponent = (propsData = {}, attr = {}, mixins = SocialSharingMixin.popup) => {
@@ -101,7 +101,7 @@ describe('SocialSharing', () => {
   xit('should set component aliases correctly', (done) => {
     // not working yet --> how to handle multiple nextTick handlers?
     const componentNames = Object.keys(networks);
-    let index = 0;
+    const index = 0; // change later to variable --> needed for eslint
 
     const newComponent = (name) => {
       const Ctor = Vue.extend(SocialSharing);
@@ -109,7 +109,6 @@ describe('SocialSharing', () => {
         template: `<${name}></${name}>`
       });
     };
-    
 
     const vm = newComponent(componentNames[index]).$mount();
     // expect(component.popup.template).toBe(expectedInstance.template); // correct mixin applied?
@@ -120,9 +119,7 @@ describe('SocialSharing', () => {
       console.log(vm);
       expect(true).toBeTruthy();
       done();
-    })
-
-
+    });
   });
 
   // mixin tests
@@ -149,7 +146,7 @@ describe('SocialSharing', () => {
     const propsData = {};
     const propKeys = Object.keys(attr);
     const vm = createComponent(propsData, attr).$mount();
-    const component = getNestedComponent(vm, 'component.directShare'); //vm.$refs.component.$refs.directShare;
+    const component = getNestedComponent(vm, 'component.directShare'); // vm.$refs.component.$refs.directShare;
 
     Vue.nextTick(() => {
       propKeys.forEach((key) => {
